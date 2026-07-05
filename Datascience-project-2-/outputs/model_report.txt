@@ -1,0 +1,104 @@
+======================================================================
+  DATA SCIENCE PROJECT 2  |  Fraud Detection Pipeline
+  DecodeLabs Batch 2026
+======================================================================
+
+----------------------------------------------------------------------
+STEP 1 -- LOAD & PREPROCESS
+----------------------------------------------------------------------
+[OK] Dataset loaded  ->  shape: (1200, 14)
+[OK] Missing values imputed & numeric outliers winsorized (IQR capping)
+
+----------------------------------------------------------------------
+STEP 2 -- FRAUD LABEL ENGINEERING
+----------------------------------------------------------------------
+  Fraud rule: flag if >=2 of these hold:
+    R1: TotalPrice >= 90th pct  (high-value order)
+    R2: Payment == Gift Card    (low-traceability)
+    R3: Status == Cancelled/Returned  (chargeback risk)
+    R4: TotalPrice z-score > 1.5  (statistical anomaly)
+  Legitimate (0) : 988
+  Fraudulent (1) : 212
+  Fraud rate     : 17.67%  -- highly imbalanced
+
+----------------------------------------------------------------------
+STEP 3 -- FEATURE ENGINEERING & ENCODING
+----------------------------------------------------------------------
+[OK] 7 features engineered
+[OK] Categoricals label-encoded
+  Feature matrix: 1200 rows x 16 features
+
+----------------------------------------------------------------------
+STEP 4 -- TRAIN / TEST SPLIT  (80/20, stratified)
+----------------------------------------------------------------------
+  Train: 960 | Fraud in train: 170
+  Test : 240  | Fraud in test : 42
+
+----------------------------------------------------------------------
+STEP 5 -- SMOTE  (Synthetic Minority Over-sampling Technique)
+----------------------------------------------------------------------
+  Before SMOTE -- Legit: 790  Fraud: 170
+  After  SMOTE -- Legit: 790  Fraud: 790
+  Synthetic samples created: 620
+  Classes now balanced
+
+----------------------------------------------------------------------
+STEP 6 -- BASELINE MODELS
+----------------------------------------------------------------------
+
+  [A] Logistic Regression (C=1, max_iter=1000)
+  [LR Base]  Precision=0.4024  Recall=0.7857  F1=0.5323  ROC-AUC=0.8529
+
+  [B] Random Forest (100 trees)
+  [RF Base]  Precision=0.8919  Recall=0.7857  F1=0.8354  ROC-AUC=0.9883
+
+----------------------------------------------------------------------
+STEP 7 -- HYPERPARAMETER TUNING  (GridSearchCV, cv=5, scoring=roc_auc)
+----------------------------------------------------------------------
+
+  [A] Tuning Logistic Regression ...
+    Best params : {'C': 1, 'max_iter': 1000, 'penalty': 'l2', 'solver': 'liblinear'}
+    Best CV AUC : 0.8480
+  [LR Tuned]  Precision=0.4024  Recall=0.7857  F1=0.5323  ROC-AUC=0.8529
+
+  [B] Tuning Random Forest ...
+    Best params : {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 200}
+    Best CV AUC : 0.9986
+  [RF Tuned]  Precision=0.8947  Recall=0.8095  F1=0.8500  ROC-AUC=0.9870
+
+----------------------------------------------------------------------
+STEP 8 -- FINAL MODEL COMPARISON & EVALUATION
+----------------------------------------------------------------------
+
+  WINNER: Random Forest (tuned)  (ROC-AUC = 0.9870)
+
+  Full Classification Report (WINNER):
+              precision    recall  f1-score   support
+
+  Legitimate       0.96      0.98      0.97       198
+       Fraud       0.89      0.81      0.85        42
+
+    accuracy                           0.95       240
+   macro avg       0.93      0.89      0.91       240
+weighted avg       0.95      0.95      0.95       240
+
+Model                                Precision     Recall         F1    ROC-AUC
+---------------------------------------------------------------------------
+  LR  Baseline                          0.4024     0.7857     0.5323     0.8529
+  LR  Tuned                             0.4024     0.7857     0.5323     0.8529
+  RF  Baseline                          0.8919     0.7857     0.8354     0.9883
+  RF  Tuned  (WINNER)                   0.8947     0.8095     0.8500     0.9870
+
+----------------------------------------------------------------------
+STEP 9 -- GENERATING VISUALISATIONS
+----------------------------------------------------------------------
+  [SAVED] 01_class_imbalance_smote.png
+  [SAVED] 02_confusion_matrices.png
+  [SAVED] 03_roc_curves.png
+  [SAVED] 04_feature_importance.png
+  [SAVED] 05_model_comparison.png
+  [SAVED] 06_fraud_business_insights.png
+
+----------------------------------------------------------------------
+STEP 10 -- SAVING MODEL REPORT
+----------------------------------------------------------------------
